@@ -1,11 +1,14 @@
 import asyncio
+import datetime
 import time
 
 import discord
 from EmojiListener import EmojiListener as Emoji
 from Voting import VotingListener
+from PinHandler import PinHandler
 import LanguageHandler
 
+pin_threshold = 15
 debugMode = False
 
 f = open("key.txt", "r")
@@ -30,10 +33,15 @@ class Client(discord.Client):
     def __init__(self, *, loop=None, **options):
         super().__init__()
         self.announcements_channel = None
-        self.voters = []
+        self.emojiVoters = []
         self.guild = None
+        self.pinHandler = None
 
     async def on_ready(self):
+
+        await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing,
+                                                               timestamps={'start': time.time()-100, 'end': time.time()},
+                                                               state="Pissing on Margret Thatcher's Grave", application_id="0"))
         for n in self.guilds:
             # if n.id == 782870393517768704:
             if n.id == 375753471812435968:
@@ -43,6 +51,9 @@ class Client(discord.Client):
             if a.name == "server-announcements":
                 self.announcements_channel = a
                 print(getTimeStamp("SERVER"), "Found Announcements Channel")
+            if a.name == "pins":
+                print(getTimeStamp("SERVER"), "Found Pins Channel")
+                self.pinHandler = PinHandler(a, self.guild)
 
     async def on_message(self, message):
         # Update status of Emoji object
@@ -55,11 +66,11 @@ class Client(discord.Client):
             elif self.emoji.status == "prompt":
                 if await self.emoji.handle_replacement(message.content) is None:
                     await self.emoji.final_image_response(message.content)
-                    self.voters.append(VotingListener(self.emoji))
+                    self.emojiVoters.append(VotingListener(self.emoji))
 
             elif self.emoji.status == "confirm":
                 await self.emoji.final_image_response(message.content)
-                self.voters.append(VotingListener(self.emoji))
+                self.emojiVoters.append(VotingListener(self.emoji))
 
         # At this point we are free to engage with a new emoji addition
         elif message.content.startswith(self.emojiPrefix) and not message.author.bot:
@@ -74,7 +85,24 @@ class Client(discord.Client):
             await LanguageHandler.determine_language(message)
 
     async def on_raw_reaction_add(self, reaction):
-        for voter in self.voters:
+        await self.handleEmojiVoters(reaction)
+        await self.handlePinVoters(reaction)
+
+    async def on_raw_reaction_remove(self, reaction):
+        for voter in self.emojiVoters:
+            if voter.get_message_id() == reaction.message_id:
+                voter.remove_vote(reaction)
+
+    async def handlePinVoters(self, reaction):
+        channel = client.get_channel(reaction.channel_id)
+        message = await channel.fetch_message(reaction.message_id)
+        for reaction in message.reactions:
+            if reaction.emoji == "📌":
+                if reaction.count == pin_threshold:
+                    await self.pinHandler.pin(message)
+
+    async def handleEmojiVoters(self, reaction):
+        for voter in self.emojiVoters:
             if voter.get_message_id() == reaction.message_id:
                 val, image, name, replacement = voter.add_vote(reaction)
                 if val is True:
@@ -95,12 +123,7 @@ class Client(discord.Client):
                     await self.announcements_channel.send("**[EMOJI ALERT]**\n" + str(
                         newEmoji) + " has been added under the name **:" + newEmoji.name + ":**")
                     voter.destroy()
-                    self.voters.remove(voter)
-
-    async def on_raw_reaction_remove(self, reaction):
-        for voter in self.voters:
-            if voter.get_message_id() == reaction.message_id:
-                voter.remove_vote(reaction)
+                    self.emojiVoters.remove(voter)
 
     def check_usage_status(self):
         if self.emoji is not None:
