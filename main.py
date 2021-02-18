@@ -1,13 +1,22 @@
+import asyncio
+import time
+
 import discord
 from EmojiListener import EmojiListener as Emoji
 from Voting import VotingListener
+import LanguageHandler
 
-key = "NzgyODUyNzE0MzkyMDU5OTU0.X8SOZw.zNT91hEfbyNKq9BpMtku4olamz8"
+debugMode = False
+
+f = open("key.txt", "r")
+key = f.read()
+
 
 def get_user_name(user):
     if user.nick is None:
         return user.name
     return user.nick
+
 
 class Client(discord.Client):
     emojiPrefix = "!"
@@ -22,25 +31,18 @@ class Client(discord.Client):
 
     async def on_ready(self):
         for n in self.guilds:
-            if n.id == 782870393517768704:
+            # if n.id == 782870393517768704:
+            if n.id == 375753471812435968:
                 self.guild = n
-            for a in self.guild.text_channels:
-                if a.name == "server-announcements":
-                    self.announcements_channel = a
-                    print("found announcements channel")
+                break
+        for a in self.guild.text_channels:
+            if a.name == "server-announcements":
+                self.announcements_channel = a
+                print("found announcements channel")
 
     async def on_message(self, message):
         # Update status of Emoji object
         self.check_usage_status()
-
-        # Determine if a user is already adding an emoji
-        # try:
-        #     print("message.author.name = ", str(message.author.name))
-        #     print("self.current_user.name = ", str(self.current_user.name))
-        #     print("Is In Use: ", self.in_use())
-        #     print("Logic: ", self.in_use() and str(message.author.name) == str(self.current_user.name))
-        # except:
-        #     pass
 
         if self.in_use() and str(message.author.name) == str(self.current_user.name):
             print("Name Is The Same Idiot")
@@ -65,13 +67,32 @@ class Client(discord.Client):
             else:
                 await message.channel.send(get_user_name(self.current_user) + " is currently adding an emoji.  "
                                                                               "Please wait to use the bot.")
+        elif not message.author.bot:
+            await LanguageHandler.determine_language(message)
 
     async def on_raw_reaction_add(self, reaction):
         for voter in self.voters:
             if voter.get_message_id() == reaction.message_id:
-                val, image, name = voter.add_vote(reaction)
+                val, image, name, replacement = voter.add_vote(reaction)
                 if val is True:
+                    if replacement is not None:
+                        print("[INFO] Replacing ", replacement.name, "with", name)
+                        for emoji in self.guild.emojis:
+                            if emoji.name == replacement.name:
+                                print("Deleting " + emoji.name)
+                                await emoji.delete()
+                                time.sleep(1)
+                    else:
+                        print("[ERROR] NO REPLACEMENT FOUND!")
+                    newEmoji = None
                     await self.guild.create_custom_emoji(name=name, image=image)
+                    for emoji in self.guild.emojis:
+                        if emoji.name == name:
+                            newEmoji = emoji
+                    await self.announcements_channel.send("**[EMOJI ALERT]**\n" + str(
+                        newEmoji) + " has been added under the name **:" + newEmoji.name + ":**")
+                    voter.destroy()
+                    self.voters.remove(voter)
 
     async def on_raw_reaction_remove(self, reaction):
         for voter in self.voters:

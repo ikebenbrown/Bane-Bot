@@ -78,7 +78,7 @@ class EmojiListener:
         await self.message.channel.send(file=discord.File(self.image.name + '.png'))
 
     def create_replacement_queue(self):
-        original = ["THUMB", "TOUNGE", "fats", "IKE1", "swarm", "DUNC", "LUKE", "DOG", "TOM3", "FROWN", "QUINN",
+        original = ["oneMoreTest", "THUMB", "TOUNGE", "fats", "IKE1", "swarm", "DUNC", "LUKE", "DOG", "TOM3", "FROWN", "QUINN",
                     "BJ", "namejeff", "SPAGHETTI", "MM", "HOT3", "URK"]
         queue = []
         for e in original:
@@ -120,21 +120,26 @@ class EmojiListener:
 
     async def final_image_response(self, response):
         if response.lower() == "yes":
+
+            posrep = None
+            for emoji in self.guild.emojis:
+                if emoji.name == "posrep":
+                    posrep = emoji
+
             await send_message(self.message.channel, "Understood. Sending **:" + self.image.original_name
                                + ":** emoji to a vote now.")
 
             await self.ann_channel.send(file=discord.File(self.image.name + '.png'))
             if self.toBeReplaced is None:
                 self.voter_message = await send_message(self.ann_channel,
-                                                        "If this post receives 15 <:posrep:784692298944086027>s, "
-                                                        "the above image will be implemented as the **:" + self.name +
+                                                        "If this post receives 15 " + str(posrep) +
+                                                        "s, the above image will be implemented as the **:" + self.name +
                                                         ":** emoji.")
             else:
                 self.voter_message = await send_message(self.ann_channel,
-                                                        "If this post receives 15 <:posrep:784692298944086027>s, "
-                                                        "the above image will be implemented as the **:" + self.name +
-                                                        ":** emoji, thus removing the " + str(self.toBeReplaced) +
-                                                        " emoji")
+                                                        "If this post receives 15 " + str(posrep) +
+                                                        "s, the above image will be implemented as the **:" + self.name +
+                                                        ":** emoji, thus removing " + str(self.toBeReplaced))
             self.deactivate()
         else:
             await send_message(self.message.channel, "Understood.  Aborting operation.")
