@@ -12,6 +12,10 @@ f = open("key.txt", "r")
 key = f.read()
 
 
+def getTimeStamp(stamp):
+    return "["+stamp+"] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
+
+
 def get_user_name(user):
     if user.nick is None:
         return user.name
@@ -38,14 +42,13 @@ class Client(discord.Client):
         for a in self.guild.text_channels:
             if a.name == "server-announcements":
                 self.announcements_channel = a
-                print("found announcements channel")
+                print(getTimeStamp("SERVER"), "Found Announcements Channel")
 
     async def on_message(self, message):
         # Update status of Emoji object
         self.check_usage_status()
 
         if self.in_use() and str(message.author.name) == str(self.current_user.name):
-            print("Name Is The Same Idiot")
             if self.emoji.status == "done":
                 self.emoji = None
                 return
@@ -76,14 +79,14 @@ class Client(discord.Client):
                 val, image, name, replacement = voter.add_vote(reaction)
                 if val is True:
                     if replacement is not None:
-                        print("[INFO] Replacing ", replacement.name, "with", name)
+                        print(getTimeStamp("EMOJI"), "Replacing ", replacement.name, "with", name)
                         for emoji in self.guild.emojis:
                             if emoji.name == replacement.name:
-                                print("Deleting " + emoji.name)
+                                print(getTimeStamp("EMOJI"), "Deleting " + emoji.name)
                                 await emoji.delete()
                                 time.sleep(1)
                     else:
-                        print("[ERROR] NO REPLACEMENT FOUND!")
+                        print("[ERROR] ",getTimeStamp("EMOJI"), "NO REPLACEMENT FOUND!")
                     newEmoji = None
                     await self.guild.create_custom_emoji(name=name, image=image)
                     for emoji in self.guild.emojis:
