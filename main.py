@@ -1,5 +1,3 @@
-import asyncio
-import datetime
 import time
 
 import discord
@@ -8,6 +6,7 @@ from Voting import VotingListener
 from PinHandler import PinHandler
 import LanguageHandler
 
+# TODO If a post goes above 15 pins, then below, then above again, it will be reposted.  Fix that.
 pin_threshold = 15
 debugMode = False
 
@@ -16,7 +15,7 @@ key = f.read()
 
 
 def getTimeStamp(stamp):
-    return "["+stamp+"] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
+    return "[" + stamp + "] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
 
 
 def get_user_name(user):
@@ -40,8 +39,10 @@ class Client(discord.Client):
     async def on_ready(self):
 
         await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing,
-                                                               timestamps={'start': time.time()-100, 'end': time.time()},
-                                                               state="Pissing on Margret Thatcher's Grave", application_id="0"))
+                                                               timestamps={'start': time.time() - 100,
+                                                                           'end': time.time()},
+                                                               state="Pissing on Margret Thatcher's Grave",
+                                                               application_id="0"))
         for n in self.guilds:
             # if n.id == 782870393517768704:
             if n.id == 375753471812435968:
@@ -114,7 +115,7 @@ class Client(discord.Client):
                                 await emoji.delete()
                                 time.sleep(1)
                     else:
-                        print("[ERROR] ",getTimeStamp("EMOJI"), "NO REPLACEMENT FOUND!")
+                        print("[ERROR] ", getTimeStamp("EMOJI"), "NO REPLACEMENT FOUND!")
                     newEmoji = None
                     await self.guild.create_custom_emoji(name=name, image=image)
                     for emoji in self.guild.emojis:
