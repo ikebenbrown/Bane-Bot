@@ -1,4 +1,3 @@
-import langdetect
 from googletrans import Translator
 import time
 
