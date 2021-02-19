@@ -15,6 +15,8 @@ class EmojiListener:
     status = "Start"
 
     def __init__(self, message, a, guild):
+        print("ANNOUNCEMENTS CHANNEL: " + str(a.id))
+        self.in_use = True
         self.guild = guild
         self.ann_channel = a
         self.message = message
@@ -23,7 +25,6 @@ class EmojiListener:
         self.image = None
         self.voter_message = None
         self.toBeReplaced = None
-        print(message.guild)
 
     def get_voter_message(self):
         return self.voter_message
@@ -42,7 +43,7 @@ class EmojiListener:
 
     async def handle_image(self):
         attachment = self.message.attachments[0]
-        self.name = self.message.content.replace(self.emojiPrefix + " ", "")
+        self.name = self.message.content.replace(self.emojiPrefix + " ", "").lower()
         self.image = ip.ImageProcessor(attachment, self.name)
         if self.image.image_state == "bad":
             await self.handle_bad_image()
@@ -78,8 +79,8 @@ class EmojiListener:
         await self.message.channel.send(file=discord.File(self.image.name + '.png'))
 
     def create_replacement_queue(self):
-        original = ["oneMoreTest", "THUMB", "TOUNGE", "fats", "IKE1", "swarm", "DUNC", "LUKE", "DOG", "TOM3", "FROWN", "QUINN",
-                    "BJ", "namejeff", "SPAGHETTI", "MM", "HOT3", "URK"]
+        original = ['bruhMoment', 'DUNC', 'LUKE', 'DOG', 'TOM3', 'FROWN', 'QUINN', 'BJ', 'namejeff',
+                    'SPAGHETTI', 'MM', 'HOT3', 'URK']
         queue = []
         for e in original:
             for emoji in self.guild.emojis:

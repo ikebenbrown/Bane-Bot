@@ -1,6 +1,7 @@
 class VotingListener:
 
-    def __init__(self, emoji):
+    def __init__(self, emoji, thresh):
+        self.threshold = thresh
         self.emoji = emoji
         self.votes = 0
         self.active = True
@@ -15,7 +16,7 @@ class VotingListener:
             if reaction.emoji.name == "posrep":
                 self.votes += 1
                 print(self.emoji.name, "posreps =", self.votes)
-            if self.votes > 0:
+            if self.votes >= self.threshold:
                 return True, self.emoji.image.bytes, self.emoji.name, self.emoji.toBeReplaced
             else:
                 return False, None, None, None
@@ -27,6 +28,9 @@ class VotingListener:
             if reaction.emoji.name == "posrep":
                 self.votes -= 1
                 print(self.emoji.name, "posreps =", self.votes)
+
+    def is_active(self):
+        return self.emoji.in_use
 
     def destroy(self):
         self.active = False

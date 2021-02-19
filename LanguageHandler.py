@@ -17,6 +17,6 @@ async def determine_language(message):
             if str(translation).lower().replace(" ", "") != message.content and \
                     str(translation).lower() != message.content:
                 messageCache.append([])
-                await message.reply("**Translation:  **" + translation, mention_author=False)
+                await message.reply("**Translation:  **" + str(translation).replace("things", "stuff"), mention_author=False)
     except Exception as e:
         print("[ERROR] [LANGUAGE] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "]" + str(e))

@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import discord
@@ -25,7 +26,7 @@ def get_user_name(user):
 
 
 class Client(discord.Client):
-    emojiPrefix = "!"
+    emojiPrefix = "!emoji"
     current_user = None
     emoji = None
 
@@ -47,11 +48,12 @@ class Client(discord.Client):
             # if n.id == 782870393517768704:
             if n.id == 375753471812435968:
                 self.guild = n
-                break
+                print(getTimeStamp("SERVER"), "Found GUILD: " + self.guild.name)
+
         for a in self.guild.text_channels:
-            if a.name == "server-announcements":
+            if a.name == "bane-bot-broken":
                 self.announcements_channel = a
-                print(getTimeStamp("SERVER"), "Found Announcements Channel")
+                print(getTimeStamp("SERVER"), "Found Announcements Channel: ", str(self.announcements_channel.id))
             if a.name == "pins":
                 print(getTimeStamp("SERVER"), "Found Pins Channel")
                 self.pinHandler = PinHandler(a, self.guild)
@@ -67,11 +69,11 @@ class Client(discord.Client):
             elif self.emoji.status == "prompt":
                 if await self.emoji.handle_replacement(message.content) is None:
                     await self.emoji.final_image_response(message.content)
-                    self.emojiVoters.append(VotingListener(self.emoji))
+                    self.emojiVoters.append(VotingListener(self.emoji, 15))
 
             elif self.emoji.status == "confirm":
                 await self.emoji.final_image_response(message.content)
-                self.emojiVoters.append(VotingListener(self.emoji))
+                self.emojiVoters.append(VotingListener(self.emoji, 15))
 
         # At this point we are free to engage with a new emoji addition
         elif message.content.startswith(self.emojiPrefix) and not message.author.bot:
@@ -103,28 +105,36 @@ class Client(discord.Client):
                     await self.pinHandler.pin(message)
 
     async def handleEmojiVoters(self, reaction):
+
         for voter in self.emojiVoters:
-            if voter.get_message_id() == reaction.message_id:
-                val, image, name, replacement = voter.add_vote(reaction)
-                if val is True:
-                    if replacement is not None:
-                        print(getTimeStamp("EMOJI"), "Replacing ", replacement.name, "with", name)
+
+            try:
+                if voter.get_message_id() == reaction.message_id:
+                    val, image, name, replacement = voter.add_vote(reaction)
+                    if val is True:
+                        if replacement is not None:
+                            print(getTimeStamp("EMOJI"), "Replacing ", replacement.name, "with", name)
+                            for emoji in self.guild.emojis:
+                                if emoji.name == replacement.name:
+                                    print(getTimeStamp("EMOJI"), "Deleting " + emoji.name)
+                                    await emoji.delete()
+                        else:
+                            print("[ERROR] ", getTimeStamp("EMOJI"), "NO REPLACEMENT FOUND!")
+
+                        newEmoji = None
+                        await self.guild.create_custom_emoji(name=name, image=image)
                         for emoji in self.guild.emojis:
-                            if emoji.name == replacement.name:
-                                print(getTimeStamp("EMOJI"), "Deleting " + emoji.name)
-                                await emoji.delete()
-                                time.sleep(1)
-                    else:
-                        print("[ERROR] ", getTimeStamp("EMOJI"), "NO REPLACEMENT FOUND!")
-                    newEmoji = None
-                    await self.guild.create_custom_emoji(name=name, image=image)
-                    for emoji in self.guild.emojis:
-                        if emoji.name == name:
-                            newEmoji = emoji
-                    await self.announcements_channel.send("**[EMOJI ALERT]**\n" + str(
-                        newEmoji) + " has been added under the name **:" + newEmoji.name + ":**")
-                    voter.destroy()
-                    self.emojiVoters.remove(voter)
+                            if emoji.name == name:
+                                newEmoji = emoji
+
+                        await asyncio.sleep(.25)
+                        await self.announcements_channel.send("**[EMOJI ALERT]**\n" + str(
+                            newEmoji) + " has been added under the name **:" + newEmoji.name + ":**")
+
+                        voter.destroy()
+                        self.emojiVoters.remove(voter)
+            except AttributeError:
+                self.emojiVoters.remove(voter)
 
     def check_usage_status(self):
         if self.emoji is not None:
