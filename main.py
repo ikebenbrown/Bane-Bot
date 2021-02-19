@@ -51,7 +51,7 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found GUILD: " + self.guild.name)
 
         for a in self.guild.text_channels:
-            if a.name == "server-announcements":
+            if a.name == "emoji-voting":
                 self.announcements_channel = a
                 print(getTimeStamp("SERVER"), "Found Announcements Channel: ", str(self.announcements_channel.id))
             if a.name == "pins":
