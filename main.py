@@ -1,6 +1,4 @@
-import asyncio
 import time
-
 import discord
 from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
@@ -58,18 +56,10 @@ class Client(discord.Client):
 
     async def on_raw_reaction_add(self, reaction):
         await self.emojiHandler.handleEmojiVoters(reaction)
-        await self.handlePinVoters(reaction)
+        await self.pinHandler.handlePinReaction(reaction, self)
 
     async def on_raw_reaction_remove(self, reaction):
         await self.emojiHandler.handleReactionRemoval(reaction)
-
-    async def handlePinVoters(self, reaction):
-        channel = client.get_channel(reaction.channel_id)
-        message = await channel.fetch_message(reaction.message_id)
-        for reaction in message.reactions:
-            if reaction.emoji == "📌":
-                if reaction.count == pin_threshold:
-                    await self.pinHandler.pin(message)
 
 
 client = Client()
