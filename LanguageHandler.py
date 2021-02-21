@@ -25,6 +25,8 @@ async def determine_language(message):
                     await message.reply("**Translation:  **" + str(translation).replace("things", "stuff"), mention_author=False)
             else:
                 print(getTimeStamp() + "Denied", message.author.name, "translation to", lang.lang)
+    except TypeError:
+        return
     except Exception as e:
         print("[ERROR] " + getTimeStamp() + str(e))
 
