@@ -4,14 +4,14 @@ from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
 import LanguageHandler
 
-# TODO record pinned messages in a file and read them on boot
+# DONE separate Emoji stuff into its own class
+# DONE clean up timestamps across codebase
+# DONE wipe mentions from pins
+# DONE record pinned messages in a file and read them on boot
 # TODO record emoji votes in a file and read them on boot
 # TODO cancel emoji votes after 4 days
 # TODO implement 20 day block after submitting an emoji
 # TODO implement server-wide cooldown of emoji submission
-
-pin_threshold = 15
-debugMode = False
 
 f = open("key.txt", "r")
 key = f.read()
