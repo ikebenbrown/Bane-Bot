@@ -4,6 +4,10 @@ import discord
 import ImageProcessor as ip
 
 
+def getTimeStamp():
+    return "[EMOJI] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "] "
+
+
 async def send_message(channel, message):
     return await channel.send(message)
 
@@ -15,7 +19,6 @@ class EmojiListener:
     status = "Start"
 
     def __init__(self, message, a, guild):
-        print("ANNOUNCEMENTS CHANNEL: " + str(a.id))
         self.in_use = True
         self.desc = ""
         self.guild = guild
@@ -55,7 +58,6 @@ class EmojiListener:
             i = 0
             for word in message:
                 if i >= 2:
-                    print(word)
                     self.desc += word + " "
                 i += 1
 
@@ -102,16 +104,15 @@ class EmojiListener:
             for emoji in self.guild.emojis:
                 if e == emoji.name:
                     queue.append(e)
-        print("OLD EMOJIS = " + str(queue))
+        print(getTimeStamp() + "Created Replacement Queue: " + str(queue))
         return queue
 
     async def handle_replacement(self, response):
         if response.lower() == "yes":
             self.status = "confirm"
-            print("name = " + self.name)
             for emoji in self.guild.emojis:
                 if emoji.name == self.name:
-                    print("Replacing emoji with same name")
+                    print(getTimeStamp() + "Replacing emoji with same name")
                     self.toBeReplaced = emoji
                     await self.message.channel.send(
                         "Creating this emoji will overwrite " + str(emoji) + ".  Are you sure you "
@@ -122,7 +123,7 @@ class EmojiListener:
             for old in self.create_replacement_queue():
                 for emoji in self.guild.emojis:
                     if emoji.name == old:
-                        print("Replacing " + emoji.name + " from replacement queue")
+                        print(getTimeStamp() + "Replacing " + emoji.name + " from replacement queue")
                         self.toBeReplaced = emoji
                         await self.message.channel.send(
                             "Creating this emoji will remove " + str(emoji) + ".  Are you sure you "
@@ -166,7 +167,7 @@ class EmojiListener:
             self.deactivate()
 
     def deactivate(self):
-        print("[" + str(time.time()) + "] " + "Engagement with " + self.message.author.name + "Complete.  Destroying "
+        print(getTimeStamp() + "Engagement with " + self.message.author.name + "Complete.  Destroying "
                                                                                               "EmojiListener Instance.")
         self.in_use = False
         self.current_user = None

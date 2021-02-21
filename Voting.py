@@ -1,3 +1,10 @@
+import time
+
+
+def getTimeStamp():
+    return "[VOTING] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "] "
+
+
 class VotingListener:
 
     def __init__(self, emoji, thresh):
@@ -11,12 +18,11 @@ class VotingListener:
             s = self.emoji.get_voter_message()
             return s.id
 
-
     def add_vote(self, reaction):
         if self.active:
             if reaction.emoji.name == "posrep":
                 self.votes += 1
-                print(self.emoji.name, "posreps =", self.votes)
+                print(getTimeStamp() + self.emoji.name, "Votes:", self.votes)
             if self.votes >= self.threshold:
                 return True, self.emoji.image.bytes, self.emoji.name, self.emoji.toBeReplaced
             else:
@@ -28,7 +34,7 @@ class VotingListener:
         if self.active:
             if reaction.emoji.name == "posrep":
                 self.votes -= 1
-                print(self.emoji.name, "posreps =", self.votes)
+                print(getTimeStamp() + self.emoji.name, "Votes:", self.votes)
 
     def is_active(self):
         return self.emoji.in_use
