@@ -7,10 +7,11 @@ def getTimeStamp():
 
 class VotingListener:
 
-    def __init__(self, emoji, thresh):
+    def __init__(self, emoji, thresh, client):
+        print(getTimeStamp(), "Created Emoji Voter:", emoji.name)
+        self.client = client
         self.threshold = thresh
         self.emoji = emoji
-        self.votes = 0
         self.active = True
 
     def get_message_id(self):
@@ -18,23 +19,17 @@ class VotingListener:
             s = self.emoji.get_voter_message()
             return s.id
 
-    def add_vote(self, reaction):
-        if self.active:
+    async def add_vote(self, reaction):
+        channel = self.client.get_channel(reaction.channel_id)
+        message = await channel.fetch_message(reaction.message_id)
+        for reaction in message.reactions:
             if reaction.emoji.name == "posrep":
-                self.votes += 1
-                print(getTimeStamp() + self.emoji.name, "Votes:", self.votes)
-            if self.votes >= self.threshold:
-                return True, self.emoji.image.bytes, self.emoji.name, self.emoji.toBeReplaced
-            else:
-                return False, None, None, None
-        else:
-            return False, None, None, None
-
-    def remove_vote(self, reaction):
-        if self.active:
-            if reaction.emoji.name == "posrep":
-                self.votes -= 1
-                print(getTimeStamp() + self.emoji.name, "Votes:", self.votes)
+                print(getTimeStamp() + self.emoji.name, "Votes:", reaction.count)
+                if reaction.count >= self.threshold:
+                    return True, self.emoji.image.bytes, self.emoji.name, self.emoji.toBeReplaced
+                else:
+                    break
+        return False, None, None, None
 
     def is_active(self):
         return self.emoji.in_use

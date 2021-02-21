@@ -17,7 +17,8 @@ def get_user_name(user):
 
 class EmojiHandler:
 
-    def __init__(self, guild, announcements_channel):
+    def __init__(self, guild, announcements_channel, client):
+        self.client = client
         self.emojiPrefix = "!emoji"
         self.guild = guild
         self.announcements_channel = announcements_channel
@@ -36,13 +37,13 @@ class EmojiHandler:
             elif self.emoji.status == "prompt":
                 if await self.emoji.handle_replacement(message.content) is None:
                     await self.emoji.final_image_response(message.content)
-                    self.emojiVoters.append(VotingListener(self.emoji, 15))
+                    self.emojiVoters.append(VotingListener(self.emoji, 15, self.client))
                     return
                 return
 
             elif self.emoji.status == "confirm":
                 await self.emoji.final_image_response(message.content)
-                self.emojiVoters.append(VotingListener(self.emoji, 15))
+                self.emojiVoters.append(VotingListener(self.emoji, 15, self.client))
                 return
 
         # At this point we are free to engage with a new emoji addition
@@ -61,7 +62,7 @@ class EmojiHandler:
 
             try:
                 if voter.get_message_id() == reaction.message_id:
-                    val, image, name, replacement = voter.add_vote(reaction)
+                    val, image, name, replacement = await voter.add_vote(reaction)
                     if val is True:
                         if replacement is not None:
                             print(getTimeStamp("EMOJI"), "Replacing ", replacement.name, "with", name)
@@ -86,11 +87,6 @@ class EmojiHandler:
                         self.emojiVoters.remove(voter)
             except AttributeError:
                 self.emojiVoters.remove(voter)
-
-    async def handleReactionRemoval(self, reaction):
-        for voter in self.emojiVoters:
-            if voter.get_message_id() == reaction.message_id:
-                voter.remove_vote(reaction)
 
     def in_use(self):
         if self.emoji is None:

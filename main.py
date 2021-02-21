@@ -44,7 +44,7 @@ class Client(discord.Client):
             if a.name == "emoji-voting":
                 self.announcements_channel = a
                 print(getTimeStamp("SERVER"), "Found Announcements Channel: ", str(self.announcements_channel.id))
-                self.emojiHandler = EmojiHandler(self.guild, self.announcements_channel)
+                self.emojiHandler = EmojiHandler(self.guild, self.announcements_channel, self)
 
             if a.name == "pins":
                 print(getTimeStamp("SERVER"), "Found Pins Channel")
@@ -57,9 +57,6 @@ class Client(discord.Client):
     async def on_raw_reaction_add(self, reaction):
         await self.emojiHandler.handleEmojiVoters(reaction)
         await self.pinHandler.handlePinReaction(reaction, self)
-
-    async def on_raw_reaction_remove(self, reaction):
-        await self.emojiHandler.handleReactionRemoval(reaction)
 
 
 client = Client()
