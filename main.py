@@ -21,7 +21,10 @@ def getTimeStamp(stamp):
 
 def get_user_name(user):
     if user.nick is None:
+        print("Big Chungus")
         return user.name
+
+
     return user.nick
 
 
@@ -61,31 +64,32 @@ class Client(discord.Client):
     async def on_message(self, message):
         # Update status of Emoji object
         self.check_usage_status()
+        await LanguageHandler.determine_language(message)
 
-        if self.in_use() and str(message.author.name) == str(self.current_user.name):
-            if self.emoji.status == "done":
-                self.emoji = None
-                return
-            elif self.emoji.status == "prompt":
-                if await self.emoji.handle_replacement(message.content) is None:
-                    await self.emoji.final_image_response(message.content)
-                    self.emojiVoters.append(VotingListener(self.emoji, 15))
-
-            elif self.emoji.status == "confirm":
-                await self.emoji.final_image_response(message.content)
-                self.emojiVoters.append(VotingListener(self.emoji, 15))
-
-        # At this point we are free to engage with a new emoji addition
-        elif message.content.startswith(self.emojiPrefix) and not message.author.bot:
-            if not self.in_use():
-                self.emoji = Emoji(message, self.announcements_channel, self.guild)
-                await self.emoji.emoji_cycle()
-                self.current_user = message.author
-            else:
-                await message.channel.send(get_user_name(self.current_user) + " is currently adding an emoji.  "
-                                                                              "Please wait to use the bot.")
-        elif not message.author.bot:
-            await LanguageHandler.determine_language(message)
+        # if self.in_use() and str(message.author.name) == str(self.current_user.name):
+        #     if self.emoji.status == "done":
+        #         self.emoji = None
+        #         return
+        #     elif self.emoji.status == "prompt":
+        #         if await self.emoji.handle_replacement(message.content) is None:
+        #             await self.emoji.final_image_response(message.content)
+        #             self.emojiVoters.append(VotingListener(self.emoji, 15))
+        #
+        #     elif self.emoji.status == "confirm":
+        #         await self.emoji.final_image_response(message.content)
+        #         self.emojiVoters.append(VotingListener(self.emoji, 15))
+        #
+        # # At this point we are free to engage with a new emoji addition
+        # elif message.content.startswith(self.emojiPrefix) and not message.author.bot:
+        #     if not self.in_use():
+        #         self.emoji = Emoji(message, self.announcements_channel, self.guild)
+        #         await self.emoji.emoji_cycle()
+        #         self.current_user = message.author
+        #     else:
+        #         await message.channel.send(get_user_name(self.current_user) + " is currently adding an emoji.  "
+        #                                                                       "Please wait to use the bot.")
+        # elif not message.author.bot:
+        #     await LanguageHandler.determine_language(message)
 
     async def on_raw_reaction_add(self, reaction):
         await self.handleEmojiVoters(reaction)

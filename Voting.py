@@ -11,6 +11,7 @@ class VotingListener:
             s = self.emoji.get_voter_message()
             return s.id
 
+
     def add_vote(self, reaction):
         if self.active:
             if reaction.emoji.name == "posrep":

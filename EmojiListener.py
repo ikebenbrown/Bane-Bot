@@ -17,6 +17,7 @@ class EmojiListener:
     def __init__(self, message, a, guild):
         print("ANNOUNCEMENTS CHANNEL: " + str(a.id))
         self.in_use = True
+        self.desc = ""
         self.guild = guild
         self.ann_channel = a
         self.message = message
@@ -43,14 +44,29 @@ class EmojiListener:
 
     async def handle_image(self):
         attachment = self.message.attachments[0]
-        self.name = self.message.content.replace(self.emojiPrefix + " ", "").lower()
-        self.image = ip.ImageProcessor(attachment, self.name)
-        if self.image.image_state == "bad":
-            await self.handle_bad_image()
-        elif self.image.image_state == "square":
-            await self.square_image_prompt()
+        message = str(self.message.content).split(" ")
+
+        if len(message) <= 2:
+            await send_message(self.message.channel, "What the fuck does **" + str(message[1]) + "** even mean?  Next time, write the description after the name of the emoji.")
+            self.deactivate()
+            return
         else:
-            await self.ideal_image_prompt()
+
+            i = 0
+            for word in message:
+                if i >= 2:
+                    print(word)
+                    self.desc += word + " "
+                i += 1
+
+            self.name = message[1].lower()
+            self.image = ip.ImageProcessor(attachment, self.name)
+            if self.image.image_state == "bad":
+                await self.handle_bad_image()
+            elif self.image.image_state == "square":
+                await self.square_image_prompt()
+            else:
+                await self.ideal_image_prompt()
 
     async def handle_bad_image(self):
         await send_message(self.message.channel, "**Warning:** The submitted emoji is not square, therefore it is not "
@@ -116,7 +132,7 @@ class EmojiListener:
                         return emoji.name
             return None
         else:
-            await send_message(self.message.channel, "Understood.  Aborting operation.")
+            await send_message(self.message.channel, "Understood and ignored.")
             self.deactivate()
 
     async def final_image_response(self, response):
@@ -132,18 +148,21 @@ class EmojiListener:
 
             await self.ann_channel.send(file=discord.File(self.image.name + '.png'))
             if self.toBeReplaced is None:
-                self.voter_message = await send_message(self.ann_channel,
-                                                        "If this post receives 15 " + str(posrep) +
-                                                        "s, the above image will be implemented as the **:" + self.name +
-                                                        ":** emoji.")
+                self.voter_message = await send_message(self.ann_channel,"**[Emoji Vote]**\n"
+                                                        "**Name:** :" + self.name + ":\n" +
+                                                        "**Description:** " + self.desc + "\n" +
+                                                        "**Author:** " + self.message.author.mention + "\n" +
+                                                        "**Voting Threshold: ** 15 " + str(posrep) + "s")
             else:
-                self.voter_message = await send_message(self.ann_channel,
-                                                        "If this post receives 15 " + str(posrep) +
-                                                        "s, the above image will be implemented as the **:" + self.name +
-                                                        ":** emoji, thus removing " + str(self.toBeReplaced))
+                self.voter_message = await send_message(self.ann_channel,"**[Emoji Vote]**\n"
+                                                        "**Name:** :" + self.name + ":\n" +
+                                                        "**Description:** " + self.desc + "\n" +
+                                                        "**Author:** " + self.message.author.mention + "\n" +
+                                                        "**Voting Threshold: ** 15 " + str(posrep) + "s\n" +
+                                                        "**Replaced Emoji:** " + str(self.toBeReplaced))
             self.deactivate()
         else:
-            await send_message(self.message.channel, "Understood.  Aborting operation.")
+            # await send_message(self.message.channel, "Understood.  Aborting operation.")
             self.deactivate()
 
     def deactivate(self):
