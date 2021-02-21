@@ -5,7 +5,26 @@ import discord
 
 
 def getTimeStamp():
-    return "[PINS] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
+    return "[PINS] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "] "
+
+
+def readPins():
+    out = []
+    file = open("pins.max", "r")
+    contents = file.read().split(",")
+    for m_id in contents:
+        try:
+            out.append(int(m_id))
+        except ValueError:
+            print("[ERROR] " + getTimeStamp() + "Invalid message ID: " + m_id)
+
+    return out
+
+
+async def writePinToFile(message_id):
+    file = open("pins.max", "a")
+    file.write(str(message_id) + ",")
+    file.close()
 
 
 class PinHandler:
@@ -14,11 +33,14 @@ class PinHandler:
         self.pin_threshold = 1
         self.pin_channel = channel
         self.guild = guild
+        self.pinned_messages = readPins()
 
         print(getTimeStamp(), "Created Pin Handler")
 
     async def pin(self, message):
         print(getTimeStamp(), "Pinning Message From: " + message.author.name)
+        self.pinned_messages.append(message.id)
+        await writePinToFile(message.id)
 
         files = []
         for attachment in message.attachments:
@@ -37,8 +59,8 @@ class PinHandler:
     async def handlePinReaction(self, reaction, client):
         channel = client.get_channel(reaction.channel_id)
         message = await channel.fetch_message(reaction.message_id)
-        for reaction in message.reactions:
-            if reaction.emoji == "📌":
-                if reaction.count == self.pin_threshold:
-                    await self.pin(message)
-
+        if not self.pinned_messages.__contains__(message.id):
+            for reaction in message.reactions:
+                if reaction.emoji == "📌":
+                    if reaction.count == self.pin_threshold:
+                        await self.pin(message)
