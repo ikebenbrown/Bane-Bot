@@ -14,7 +14,6 @@ class PinHandler:
         self.pin_threshold = 1
         self.pin_channel = channel
         self.guild = guild
-        self.managedPins = []
 
         print(getTimeStamp(), "Created Pin Handler")
 
@@ -31,7 +30,7 @@ class PinHandler:
                     files.append(discord.File(data, attachment.filename))
 
         out = str(message.jump_url) + "\n" + "**Author:** " + message.author.mention + \
-              "  |  " + "**Channel:** " + message.channel.mention + "\n" + message.content
+              "  |  " + "**Channel:** " + message.channel.mention + "\n" + message.clean_content
 
         await self.pin_channel.send(out, files=files)
 
@@ -42,3 +41,4 @@ class PinHandler:
             if reaction.emoji == "📌":
                 if reaction.count == self.pin_threshold:
                     await self.pin(message)
+
