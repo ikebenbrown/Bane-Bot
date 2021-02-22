@@ -2,6 +2,7 @@ import time
 import discord
 from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
+import Voting
 import LanguageHandler
 
 # DONE separate Emoji stuff into its own class
@@ -23,7 +24,7 @@ def getTimeStamp(stamp):
 
 class Client(discord.Client):
 
-    def __init__(self, *, loop=None, **options):
+    def __init__(self):
         super().__init__()
         self.announcements_channel = None
         self.guild = None
@@ -50,13 +51,17 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found Pins Channel")
                 self.pinHandler = PinHandler(a, self.guild)
 
+        Voting.create_archived_votes()
+
     async def on_message(self, message):
         await LanguageHandler.determine_language(message)
-        await self.emojiHandler.handleEmojiMessage(message)
+        if self.emojiHandler is not None:
+            await self.emojiHandler.handleEmojiMessage(message)
 
     async def on_raw_reaction_add(self, reaction):
-        await self.emojiHandler.handleEmojiVoters(reaction)
         await self.pinHandler.handlePinReaction(reaction, self)
+        if self.emojiHandler is not None:
+            await self.emojiHandler.handleEmojiVoters(reaction)
 
 
 client = Client()

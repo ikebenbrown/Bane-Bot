@@ -5,6 +5,13 @@ def getTimeStamp():
     return "[VOTING] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "] "
 
 
+def create_archived_votes():
+    file = open("emojivotes.max", "r")
+    raw = file.read()
+    raw_voters = raw.split('\n')
+    print(raw_voters)
+
+
 class VotingListener:
 
     def __init__(self, emoji, thresh, client):
@@ -13,6 +20,17 @@ class VotingListener:
         self.threshold = thresh
         self.emoji = emoji
         self.active = True
+        self.write_voter_to_file()
+
+    # FORMAT OF WRITTEN FILES:
+    # original submission message ID, channel ID of <- message, voting message id, channel ID of <- message
+    def write_voter_to_file(self):
+        file = open("emojivotes.max", "a")
+        out = str(self.emoji.message.id) + "," + str(self.emoji.message.channel.id) + "," + str(
+            self.emoji.voter_message.id) + "," + str(self.emoji.ann_channel.id) + '\n'
+        print(out)
+        file.write(out)
+        file.close()
 
     def get_message_id(self):
         if self.active:
