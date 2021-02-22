@@ -22,7 +22,8 @@ async def determine_language(message):
                 if str(translation).lower().replace(" ", "") != message.content and \
                         str(translation).lower() != message.content:
                     messageCache.append([])
-                    await message.reply("**Translation:  **" + str(translation).replace("things", "stuff"), mention_author=False)
+                    await message.reply("**Translation:  **" + str(translation).replace("things", "stuff"),
+                                        mention_author=False)
             else:
                 print(getTimeStamp() + "Denied", message.author.name, "translation to", lang.lang)
     except TypeError:
@@ -32,7 +33,6 @@ async def determine_language(message):
 
 
 def determinePermissions(message, language):
-    role_name = None
     if language == "es":
         role_name = "Spanish Speakers"
     elif language == "de":
