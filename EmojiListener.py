@@ -29,6 +29,7 @@ class EmojiListener:
         self.image = None
         self.voter_message = voter_message
         self.toBeReplaced = None
+        self.time = message.created_at
 
     async def createArchivedEmojiListener(self):
         await self.handle_image()

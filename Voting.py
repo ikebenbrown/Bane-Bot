@@ -46,21 +46,25 @@ class VotingListener:
         self.threshold = thresh
         self.emoji = emoji
         self.active = True
+        self.author_id = emoji.message.author.id
         if new_voter:
             self.write_voter_to_file()
             print(getTimeStamp() + "Created Emoji Voter:", emoji.name)
         else:
             print(getTimeStamp() + "Recovered Voter:", emoji.name)
+
     # FORMAT OF WRITTEN FILES:
-    # original submission message ID, channel ID of <- message, voting message id, channel ID of <- message
+    # original submission message ID, channel ID of <-, voting message id, channel ID of <-
     def write_voter_to_file(self):
         file = open("emojivotes.max", "a")
-        out = str(self.emoji.message.id) + "," + str(self.emoji.message.channel.id) + "," + str(
-            self.emoji.voter_message.id) + "," + str(self.emoji.ann_channel.id) + "," + str(time.time()) + "," \
-              + str(self.emoji.message.author.id) + '\n'
-        print(out)
-        file.write(out)
+        out_order = {str(self.emoji.message.id), str(self.emoji.message.channel.id), str(self.emoji.ann_channel.id),
+                     str(self.emoji.voter_message.id)}
+        c = ","
+        out = c.join(out_order)
+        file.write("\n" + out)
         file.close()
+
+
 
     def get_message_id(self):
         if self.active:

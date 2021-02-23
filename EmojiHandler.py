@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import time
 
 from Voting import VotingListener
@@ -28,7 +29,6 @@ class EmojiHandler:
 
     async def handleEmojiMessage(self, message):
         self.check_usage_status()
-
         if self.in_use() and str(message.author.name) == str(self.current_user.name):
             if self.emoji.status == "done":
                 self.emoji = None
@@ -49,9 +49,13 @@ class EmojiHandler:
         # At this point we are free to engage with a new emoji addition
         elif not message.author.bot and str(message.content).startswith(self.emojiPrefix):
             if not self.in_use():
-                self.emoji = Emoji(message, self.announcements_channel, self.guild, None)
-                await self.emoji.emoji_cycle()
-                self.current_user = message.author
+                if self.canAddEmoji(message) == "True":
+                    self.emoji = Emoji(message, self.announcements_channel, self.guild, None)
+                    await self.emoji.emoji_cycle()
+                    self.current_user = message.author
+                else:
+                    await message.channel.send("You must wait " + self.canAddEmoji(message) + " to add an emoji")
+                    print(self.canAddEmoji(message))
             else:
                 await message.channel.send(get_user_name(self.current_user) + " is currently adding an emoji.  "
                                                                               "Please wait to use the bot.")
@@ -103,3 +107,22 @@ class EmojiHandler:
     def addVoters(self, voters):
         for voter in voters:
             self.emojiVoters.append(voter)
+
+    def canAddEmoji(self, message):
+        for voter in self.emojiVoters:
+            delta = (message.created_at - voter.emoji.time).seconds
+            if delta < 24 * 60 * 60:
+                timeDelta = voter.emoji.time + datetime.timedelta(hours=24) - datetime.datetime.utcnow()
+                hms = str(timeDelta).split(".")[0]
+                hours = hms.split(":")[0]
+                minutes = hms.split(":")[1]
+                seconds = hms.split(":")[2]
+                if hours != "00":
+                        return hours + " hours, " + minutes + " minutes, and " + seconds + " seconds"
+                else:
+                    if minutes != "00":
+                        return minutes + " minutes, and " + seconds + " seconds"
+                    else:
+                        return seconds + " seconds"
+
+        return "True"
