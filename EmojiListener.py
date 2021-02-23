@@ -1,3 +1,4 @@
+import datetime
 import time
 import discord
 
@@ -165,20 +166,25 @@ class EmojiListener:
             await send_message(self.message.channel, "Understood. Sending **:" + self.image.original_name
                                + ":** emoji to a vote now.")
 
+            vote_end = str(self.message.created_at +
+                           datetime.timedelta(days=4) + datetime.timedelta(hours=6)).split(".")[0]
+
             await self.ann_channel.send(file=discord.File(self.image.name + '.png'))
             if self.toBeReplaced is None:
                 self.voter_message = await send_message(self.ann_channel,"**[Emoji Vote]**\n"
                                                         "**Name:** :" + self.name + ":\n" +
                                                         "**Description:** " + self.desc + "\n" +
                                                         "**Author:** " + self.message.author.mention + "\n" +
-                                                        "**Voting Threshold: ** 15 " + str(posrep) + "s")
+                                                        "**Voting Threshold: ** 15 " + str(posrep) + "s" + "\n" +
+                                                        "**Vote End** (CST): " + vote_end)
             else:
                 self.voter_message = await send_message(self.ann_channel,"**[Emoji Vote]**\n"
                                                         "**Name:** :" + self.name + ":\n" +
                                                         "**Description:** " + self.desc + "\n" +
                                                         "**Author:** " + self.message.author.mention + "\n" +
                                                         "**Voting Threshold: ** 15 " + str(posrep) + "s\n" +
-                                                        "**Replaced Emoji:** " + str(self.toBeReplaced))
+                                                        "**Replaced Emoji:** " + str(self.toBeReplaced) + "\n" +
+                                                        "**Vote End** (CST): " + vote_end)
             self.deactivate()
         else:
             # await send_message(self.message.channel, "Understood.  Aborting operation.")

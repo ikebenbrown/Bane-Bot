@@ -34,7 +34,8 @@ async def create_voter(raw_voter, client):
         # TODO make this "15" automatically change the with the voting threshold
         return VotingListener(emoji, 15, client, False)
 
-    except Exception:
+    except Exception as e:
+        print(e.with_traceback())
         print(getTimeStamp(), "Failed to find message")
         return None
 
@@ -57,11 +58,9 @@ class VotingListener:
     # original submission message ID, channel ID of <-, voting message id, channel ID of <-
     def write_voter_to_file(self):
         file = open("emojivotes.max", "a")
-        out_order = {str(self.emoji.message.id), str(self.emoji.message.channel.id), str(self.emoji.ann_channel.id),
-                     str(self.emoji.voter_message.id)}
-        c = ","
-        out = c.join(out_order)
-        file.write("\n" + out)
+        out = str(self.emoji.message.id) + "," + str(self.emoji.message.channel.id) + "," + \
+              str(self.emoji.voter_message.id) + "," + str(self.emoji.voter_message.channel.id)
+        file.write(out+"\n")
         file.close()
 
 
