@@ -37,19 +37,19 @@ class EmojiHandler:
             elif self.emoji.status == "prompt":
                 if await self.emoji.handle_replacement(message.content) is None:
                     await self.emoji.final_image_response(message.content)
-                    self.emojiVoters.append(VotingListener(self.emoji, 15, self.client))
+                    self.emojiVoters.append(VotingListener(self.emoji, 15, self.client, True))
                     return
                 return
 
             elif self.emoji.status == "confirm":
                 await self.emoji.final_image_response(message.content)
-                self.emojiVoters.append(VotingListener(self.emoji, 15, self.client))
+                self.emojiVoters.append(VotingListener(self.emoji, 15, self.client, True))
                 return
 
         # At this point we are free to engage with a new emoji addition
         elif not message.author.bot and str(message.content).startswith(self.emojiPrefix):
             if not self.in_use():
-                self.emoji = Emoji(message, self.announcements_channel, self.guild)
+                self.emoji = Emoji(message, self.announcements_channel, self.guild, None)
                 await self.emoji.emoji_cycle()
                 self.current_user = message.author
             else:
@@ -99,3 +99,7 @@ class EmojiHandler:
         else:
             self.current_user = None
             self.emoji = None
+
+    def addVoters(self, voters):
+        for voter in voters:
+            self.emojiVoters.append(voter)

@@ -18,7 +18,7 @@ class EmojiListener:
     in_use = True
     status = "Start"
 
-    def __init__(self, message, a, guild):
+    def __init__(self, message, a, guild, voter_message):
         self.in_use = True
         self.desc = ""
         self.guild = guild
@@ -27,7 +27,7 @@ class EmojiListener:
         self.current_user = message.author
         self.name = None
         self.image = None
-        self.voter_message = None
+        self.voter_message = voter_message
         self.toBeReplaced = None
 
     async def createArchivedEmojiListener(self):
@@ -47,6 +47,20 @@ class EmojiListener:
         else:
             await send_message(self.message.channel, "Please only attach one emoji at a time.")
             self.deactivate()
+
+    # This is only for the recreation of votes after a bot restart
+    async def handle_image_silent(self):
+        attachment = self.message.attachments[0]
+        message = str(self.message.content).split(" ")
+        self.name = message[1].lower()
+        self.image = ip.ImageProcessor(attachment, self.name)
+
+        if self.image.image_state == "bad":
+            await self.image.downscale_skew()
+        elif self.image.image_state == "square":
+            await self.image.downscale()
+        else:
+            await self.image.download_image()
 
     async def handle_image(self):
         attachment = self.message.attachments[0]

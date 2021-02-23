@@ -51,7 +51,7 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found Pins Channel")
                 self.pinHandler = PinHandler(a, self.guild)
 
-        Voting.create_archived_votes()
+        self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
 
     async def on_message(self, message):
         await LanguageHandler.determine_language(message)
