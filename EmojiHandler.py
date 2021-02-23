@@ -54,8 +54,7 @@ class EmojiHandler:
                     await self.emoji.emoji_cycle()
                     self.current_user = message.author
                 else:
-                    await message.channel.send("You must wait " + self.canAddEmoji(message) + " to add an emoji")
-                    print(self.canAddEmoji(message))
+                    await message.channel.send("**[Emoji Voting Cooldown]**\n" + "You must wait " + self.canAddEmoji(message) + " to add an emoji")
             else:
                 await message.channel.send(get_user_name(self.current_user) + " is currently adding an emoji.  "
                                                                               "Please wait to use the bot.")
