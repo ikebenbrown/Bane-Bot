@@ -53,8 +53,6 @@ class Client(discord.Client):
 
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
 
-        await self.join_vc("Gamer 3")
-
     async def on_message(self, message):
         await LanguageHandler.determine_language(message)
         if self.emojiHandler is not None:
@@ -76,7 +74,6 @@ class Client(discord.Client):
         for channel in channels:
             if channel.name == channel_name:
                 await channel.connect()
-
 
 
 client = Client()
