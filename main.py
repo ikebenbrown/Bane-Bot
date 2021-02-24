@@ -53,6 +53,8 @@ class Client(discord.Client):
 
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
 
+        await self.join_vc("Gamer 3")
+
     async def on_message(self, message):
         await LanguageHandler.determine_language(message)
         if self.emojiHandler is not None:
@@ -62,6 +64,19 @@ class Client(discord.Client):
         await self.pinHandler.handlePinReaction(reaction, self)
         if self.emojiHandler is not None:
             await self.emojiHandler.handleEmojiVoters(reaction)
+
+    async def send_message(self, channel_name, message):
+        channels = await self.guild.fetch_channels()
+        for channel in channels:
+            if channel.name == channel_name:
+                await channel.send(message)
+
+    async def join_vc(self, channel_name):
+        channels = await self.guild.fetch_channels()
+        for channel in channels:
+            if channel.name == channel_name:
+                await channel.connect()
+
 
 
 client = Client()

@@ -15,7 +15,7 @@ async def create_archived_votes(client):
         if voter != "":
             voter = voter.split(",")
             created_voter = await create_voter(voter, client)
-            if created_voter is not None:
+            if created_voter is not None and not created_voter.get_passed():
                 out.append(created_voter)
     return out
 
@@ -63,7 +63,12 @@ class VotingListener:
         file.write(out+"\n")
         file.close()
 
-
+    def get_passed(self):
+        for reaction in self.emoji.voter_message.reactions:
+            if reaction.emoji.name == "posrep":
+                if reaction.count >= self.threshold:
+                    return True
+        return False
 
     def get_message_id(self):
         if self.active:
