@@ -2,6 +2,7 @@ import time
 import discord
 from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
+from HistoryManager import HistoryManager
 import Voting
 import LanguageHandler
 
@@ -11,8 +12,13 @@ import LanguageHandler
 # DONE record pinned messages in a file and read them on boot
 # DONE record emoji votes in a file and read them on boot
 # DONE implement server-wide cooldown of emoji submission
-# TODO cancel emoji votes after 4 days
+# DONE implement system to collect emoji usage from the last month
 # TODO implement 20 day block after submitting an emoji
+# TODO cancel emoji votes after 4 days
+# TODO give HistoryManager its own thread to avoid blocking responses while parsing server data
+# TODO automatically collect and report emoji usage on the 1st day of every month
+# TODO automatically update "chopping block" based on emoji usage data
+
 
 f = open("key.txt", "r")
 key = f.read()
@@ -52,6 +58,9 @@ class Client(discord.Client):
                 self.pinHandler = PinHandler(a, self.guild)
 
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
+
+        # history = HistoryManager(self.guild)
+        # await history.analyze_history()
 
     async def on_message(self, message):
         await LanguageHandler.determine_language(message)
