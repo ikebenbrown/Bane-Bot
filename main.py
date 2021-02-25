@@ -43,8 +43,8 @@ class Client(discord.Client):
         await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing))
 
         for n in self.guilds:
-            # if n.id == 375753471812435968:
-            if n.id == 782870393517768704:
+            if n.id == 375753471812435968:
+            # if n.id == 782870393517768704:
                 self.guild = n
                 print(getTimeStamp("SERVER"), "Found GUILD: " + self.guild.name)
 

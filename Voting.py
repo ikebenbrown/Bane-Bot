@@ -8,17 +8,24 @@ def getTimeStamp():
 
 
 async def create_archived_votes(client):
-    file = open("emojivotes.max", "r")
-    raw = file.read()
-    raw_voters = raw.split('\n')
-    out = []
-    for voter in raw_voters:
-        if voter != "":
-            voter = voter.split(",")
-            created_voter = await create_voter(voter, client)
-            if created_voter is not None and not created_voter.get_passed():
-                out.append(created_voter)
-    return out
+    guild_file = str(client.guild.id) + "_emojivotes.max"
+    try:
+        file = open(guild_file, "r")
+        raw = file.read()
+        raw_voters = raw.split('\n')
+        out = []
+        for voter in raw_voters:
+            if voter != "":
+                voter = voter.split(",")
+                created_voter = await create_voter(voter, client)
+                if created_voter is not None and not created_voter.get_passed():
+                    out.append(created_voter)
+        file.close()
+        return out
+    except FileNotFoundError:
+        file = open(guild_file, "x")
+        file.close()
+        return []
 
 
 async def create_voter(raw_voter, client):
@@ -59,7 +66,8 @@ class VotingListener:
     # FORMAT OF WRITTEN FILES:
     # original submission message ID, channel ID of <-, voting message id, channel ID of <-
     def write_voter_to_file(self):
-        file = open("emojivotes.max", "a")
+        guild_file = str(self.client.guild.id) + "_emojivotes.max"
+        file = open(guild_file, "a")
         out = str(self.emoji.message.id) + "," + str(self.emoji.message.channel.id) + "," + \
               str(self.emoji.voter_message.id) + "," + str(self.emoji.voter_message.channel.id)
         file.write(out+"\n")
@@ -96,14 +104,15 @@ class VotingListener:
         self.active = False
 
     def update_user_submission_record(self):
-        file = str(open("uservotes.max", "r").read()).split("\n")
+        guild_file = str(self.client.guild.id) + "_emojivotes.max"
+        file = str(open(guild_file, "r").read()).split("\n")
         out = ""
         for entry in file:
             id = entry.split(";")[0]
             if id != self.emoji.message.author.id:
                 out += entry + "\n"
         out += str(self.emoji.message.author.id) + ";" + str(time.time()) + "\n"
-        file = open("uservotes.max", "w")
+        file = open(guild_file, "w")
         file.write(out)
         file.close()
 
