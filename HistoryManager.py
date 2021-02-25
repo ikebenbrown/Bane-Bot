@@ -16,6 +16,7 @@ class HistoryManager:
     def __init__(self, guild):
         self.guild = guild
         self.reactions = []
+        self.message_count = 0
 
     async def analyze_history(self):
         server_announcements = None
@@ -31,25 +32,26 @@ class HistoryManager:
             if channel.name == "server-announcements":
                 server_announcements = channel
 
-        self.sort_reactions()
-        self.print_reaction_data()
-        await self.send_reaction_data(server_announcements)
+        print("MESSAGE COUNT: ", self.message_count)
+        # self.sort_reactions()
+        # self.print_reaction_data()
+        # await self.send_reaction_data(server_announcements)
 
     async def analyze_channel_history(self, channel: discord.TextChannel):
         message: discord.Message
         one_month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
         async for message in channel.history(limit=None, after=one_month_ago):
+            self.message_count += 1
             for reaction in message.reactions:
                 self.update_reaction(reaction)
+        print(getTimeStamp(), "Successfully analyzed", channel.name)
 
     def update_reaction(self, react: discord.Reaction):
         if react.custom_emoji:
             for reaction in self.reactions:
                 if reaction[0] == str(react.emoji):
-                    print("Updated Emoji: " + str(react.emoji))
                     reaction[1] = react.count + reaction[1]
                     return
-            print("Updated Emoji: " + str(react.emoji))
             self.reactions.append([str(react.emoji), react.count])
             return
         return

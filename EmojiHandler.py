@@ -108,20 +108,40 @@ class EmojiHandler:
             self.emojiVoters.append(voter)
 
     def canAddEmoji(self, message):
+        last_sub = self.get_user_last_submission(message)
         for voter in self.emojiVoters:
             delta = (message.created_at - voter.emoji.time).seconds
             if delta < 24 * 60 * 60:
-                timeDelta = voter.emoji.time + datetime.timedelta(hours=24) - datetime.datetime.utcnow()
-                hms = str(timeDelta).split(".")[0]
-                hours = hms.split(":")[0]
-                minutes = hms.split(":")[1]
-                seconds = hms.split(":")[2]
-                if hours != "00":
-                        return hours + " hours, " + minutes + " minutes, and " + seconds + " seconds"
+                if last_sub + datetime.timedelta(days=20) <= datetime.datetime.utcnow():
+                    timeDelta = last_sub + datetime.timedelta(days=20) - datetime.datetime.utcnow()
+                    return self.get_formatted_time(timeDelta)
                 else:
-                    if minutes != "00":
-                        return minutes + " minutes, and " + seconds + " seconds"
-                    else:
-                        return seconds + " seconds"
-
+                    timeDelta = voter.emoji.time + datetime.timedelta(days=20) - datetime.datetime.utcnow()
+                    return self.get_formatted_time(timeDelta)
+            elif last_sub + datetime.timedelta(days=20) <= datetime.datetime.utcnow():
+                timeDelta = last_sub + datetime.timedelta(days=20) - datetime.datetime.utcnow()
+                return self.get_formatted_time(timeDelta)
         return "True"
+
+    def get_formatted_time(self, timeDelta):
+        hms = str(timeDelta).split(".")[0]
+        hours = hms.split(":")[0]
+        minutes = hms.split(":")[1]
+        seconds = hms.split(":")[2]
+        if hours != "00":
+            return hours + " hours, " + minutes + " minutes, and " + seconds + " seconds"
+        else:
+            if minutes != "00":
+                return minutes + " minutes, and " + seconds + " seconds"
+            else:
+                return seconds + " seconds"
+
+    def get_user_last_submission(self, message):
+        file = str(open("uservotes.max", "r").read()).split("\n")
+        for entry in file:
+            entry = entry.split(";")
+            if int(entry[0]) == int(message.author.id):
+                time = float(entry[1])
+                return datetime.datetime.fromtimestamp(time)
+        print("Found No Value for", message.author.id)
+        return datetime.datetime.now()

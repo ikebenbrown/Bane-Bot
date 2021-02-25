@@ -1,3 +1,4 @@
+import datetime
 import time
 from EmojiListener import EmojiListener
 
@@ -53,6 +54,7 @@ class VotingListener:
             print(getTimeStamp() + "Created Emoji Voter:", emoji.name)
         else:
             print(getTimeStamp() + "Recovered Voter:", emoji.name)
+        # self.update_user_submission_record()
 
     # FORMAT OF WRITTEN FILES:
     # original submission message ID, channel ID of <-, voting message id, channel ID of <-
@@ -92,3 +94,17 @@ class VotingListener:
 
     def destroy(self):
         self.active = False
+
+    def update_user_submission_record(self):
+        file = str(open("uservotes.max", "r").read()).split("\n")
+        out = ""
+        for entry in file:
+            id = entry.split(";")[0]
+            if id != self.emoji.message.author.id:
+                out += entry + "\n"
+        out += str(self.emoji.message.author.id) + ";" + str(time.time()) + "\n"
+        file = open("uservotes.max", "w")
+        file.write(out)
+        file.close()
+
+

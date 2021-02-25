@@ -15,6 +15,7 @@ import LanguageHandler
 # DONE implement system to collect emoji usage from the last month
 # TODO implement 20 day block after submitting an emoji
 # TODO cancel emoji votes after 4 days
+# ---------------- History Manager ---------------------
 # TODO give HistoryManager its own thread to avoid blocking responses while parsing server data
 # TODO automatically collect and report emoji usage on the 1st day of every month
 # TODO automatically update "chopping block" based on emoji usage data
@@ -42,8 +43,8 @@ class Client(discord.Client):
         await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing))
 
         for n in self.guilds:
-            if n.id == 375753471812435968:
-            # if n.id == 782870393517768704:
+            # if n.id == 375753471812435968:
+            if n.id == 782870393517768704:
                 self.guild = n
                 print(getTimeStamp("SERVER"), "Found GUILD: " + self.guild.name)
 
