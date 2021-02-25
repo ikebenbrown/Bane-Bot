@@ -42,6 +42,9 @@ class Client(discord.Client):
 
         await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing))
 
+        # Dangerous Men: 375753471812435968
+        # Test Server: 782870393517768704
+
         for n in self.guilds:
             if n.id == 375753471812435968:
             # if n.id == 782870393517768704:

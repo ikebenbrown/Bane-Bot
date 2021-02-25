@@ -75,9 +75,15 @@ class VotingListener:
 
     def get_passed(self):
         for reaction in self.emoji.voter_message.reactions:
-            if reaction.emoji.name == "posrep":
-                if reaction.count >= self.threshold:
-                    return True
+            if isinstance(reaction.emoji, str):
+                print(reaction.emoji)
+                if reaction.emoji.__contains__("posrep"):
+                    if reaction.count >= self.threshold:
+                        return True
+            else:
+                if reaction.emoji.name == "posrep":
+                    if reaction.count >= self.threshold:
+                        return True
         return False
 
     def get_message_id(self):
