@@ -8,7 +8,7 @@ def getTimeStamp():
 
 
 async def create_archived_votes(client):
-    guild_file = str(client.guild.id) + "_emojivotes.max"
+    guild_file = "data/" + str(client.guild.id) + "_emojivotes.max"
     try:
         file = open(guild_file, "r")
         raw = file.read()
@@ -66,7 +66,7 @@ class VotingListener:
     # FORMAT OF WRITTEN FILES:
     # original submission message ID, channel ID of <-, voting message id, channel ID of <-
     def write_voter_to_file(self):
-        guild_file = str(self.client.guild.id) + "_emojivotes.max"
+        guild_file = "data/" + str(self.client.guild.id) + "_emojivotes.max"
         file = open(guild_file, "a")
         out = str(self.emoji.message.id) + "," + str(self.emoji.message.channel.id) + "," + \
               str(self.emoji.voter_message.id) + "," + str(self.emoji.voter_message.channel.id)
@@ -110,7 +110,7 @@ class VotingListener:
         self.active = False
 
     def update_user_submission_record(self):
-        guild_file = str(self.client.guild.id) + "_emojivotes.max"
+        guild_file = "data/" + str(self.client.guild.id) + "_emojivotes.max"
         file = str(open(guild_file, "r").read()).split("\n")
         out = ""
         for entry in file:
@@ -121,5 +121,3 @@ class VotingListener:
         file = open(guild_file, "w")
         file.write(out)
         file.close()
-
-

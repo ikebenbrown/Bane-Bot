@@ -10,7 +10,7 @@ def getTimeStamp():
 
 def readPins():
     out = []
-    file = open("pins.max", "r")
+    file = open("data/pins.max", "r")
     contents = file.read().split(",")
     for m_id in contents:
         try:
@@ -22,7 +22,7 @@ def readPins():
 
 
 async def writePinToFile(message_id):
-    file = open("pins.max", "a")
+    file = open("data/pins.max", "a")
     file.write(str(message_id) + ",")
     file.close()
 

@@ -13,7 +13,8 @@ import LanguageHandler
 # DONE record emoji votes in a file and read them on boot
 # DONE implement server-wide cooldown of emoji submission
 # DONE implement system to collect emoji usage from the last month
-# TODO implement 20 day block after submitting an emoji
+# DONE implement 20 day block after submitting an emoji
+# TODO role manager
 # TODO cancel emoji votes after 4 days
 # ---------------- History Manager ---------------------
 # TODO give HistoryManager its own thread to avoid blocking responses while parsing server data
@@ -21,8 +22,14 @@ import LanguageHandler
 # TODO automatically update "chopping block" based on emoji usage data
 
 
-f = open("key.txt", "r")
+f = open("data/key.txt", "r")
 key = f.read()
+
+# Dangerous Men
+# active_guild = 375753471812435968
+
+# Test Server
+active_guild = 782870393517768704
 
 
 def getTimeStamp(stamp):
@@ -42,12 +49,9 @@ class Client(discord.Client):
 
         await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing))
 
-        # Dangerous Men: 375753471812435968
-        # Test Server: 782870393517768704
-
         for n in self.guilds:
-            if n.id == 375753471812435968:
-            # if n.id == 782870393517768704:
+            # if n.id ==
+            if n.id == active_guild:
                 self.guild = n
                 print(getTimeStamp("SERVER"), "Found GUILD: " + self.guild.name)
 
@@ -66,15 +70,17 @@ class Client(discord.Client):
         # history = HistoryManager(self.guild)
         # await history.analyze_history()
 
-    async def on_message(self, message):
-        await LanguageHandler.determine_language(message)
-        if self.emojiHandler is not None:
-            await self.emojiHandler.handleEmojiMessage(message)
+    async def on_message(self, message: discord.Message):
+        if message.guild.id == active_guild:
+            await LanguageHandler.determine_language(message)
+            if self.emojiHandler is not None:
+                await self.emojiHandler.handleEmojiMessage(message)
 
-    async def on_raw_reaction_add(self, reaction):
-        await self.pinHandler.handlePinReaction(reaction, self)
-        if self.emojiHandler is not None:
-            await self.emojiHandler.handleEmojiVoters(reaction)
+    async def on_raw_reaction_add(self, reaction: discord.RawReactionActionEvent):
+        if reaction.guild_id == active_guild:
+            await self.pinHandler.handlePinReaction(reaction, self)
+            if self.emojiHandler is not None:
+                await self.emojiHandler.handleEmojiVoters(reaction)
 
     async def send_message(self, channel_name, message):
         channels = await self.guild.fetch_channels()

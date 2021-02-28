@@ -137,7 +137,7 @@ class EmojiHandler:
                 return seconds + " seconds"
 
     def get_user_last_submission(self, message):
-        file = str(open("uservotes.max", "r").read()).split("\n")
+        file = str(open("data/uservotes.max", "r").read()).split("\n")
         for entry in file:
             entry = entry.split(";")
             if int(entry[0]) == int(message.author.id):
