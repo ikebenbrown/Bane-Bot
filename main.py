@@ -25,10 +25,14 @@ import LanguageHandler
 f = open("data/key.txt", "r")
 key = f.read()
 
+g = open("data/guild.max", "r")
+active_guild = g.read()
+
 # Dangerous Men
 # active_guild = 375753471812435968
 
 # Test Server
+# noinspection PyRedeclaration
 active_guild = 782870393517768704
 
 
