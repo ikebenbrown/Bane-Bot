@@ -2,6 +2,8 @@ import time
 import discord
 from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
+from Role import Role
+from RoleMessage import RoleMessage
 from HistoryManager import HistoryManager
 import Voting
 import LanguageHandler
@@ -48,6 +50,7 @@ class Client(discord.Client):
         self.guild = None
         self.pinHandler = None
         self.emojiHandler = None
+        self.admin_channel = None
 
     async def on_ready(self):
 
@@ -69,7 +72,13 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found Pins Channel")
                 self.pinHandler = PinHandler(a, self.guild)
 
+            if a.name == "admin-chat":
+                print(getTimeStamp("SERVER"), "Found Admin Channel")
+                self.admin_channel = a
+
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
+
+        # RoleMessage(read=True)
 
         # history = HistoryManager(self.guild)
         # await history.analyze_history()
@@ -79,6 +88,9 @@ class Client(discord.Client):
             await LanguageHandler.determine_language(message)
             if self.emojiHandler is not None:
                 await self.emojiHandler.handleEmojiMessage(message)
+            if str(message.content).startswith("!role") and message.channel.id == self.admin_channel.id and not message.author.bot:
+                role = Role(message)
+                await role.create_role()
 
     async def on_raw_reaction_add(self, reaction: discord.RawReactionActionEvent):
         if reaction.guild_id == active_guild:
