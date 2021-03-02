@@ -16,6 +16,8 @@ class Role:
     guild: discord.Guild
     message: discord.Message
 
+    # Role saved notation: role ID, emoji
+
     def __init__(self, message: discord.Message = None, role: discord.Role = None):
         self.emoji = None
 
@@ -31,8 +33,13 @@ class Role:
 
         # Prepare to read from roles file to make sure it exists/create it if needed
         self.role_file = "data/" + str(self.guild.id) + "_roles.max"
-        # file = open(self.role_file, "a")
-        # file.close()
+        file = open(self.role_file, "a")
+        file.close()
+
+        # If role is defined from a discord role, collect its emoji from our database
+        if message is None:
+            self.emoji = self.get_role_emoji_from_file()
+            print(self.emoji)
 
     async def create_role(self):
         valid = await self.interpret_role_message()
@@ -92,3 +99,18 @@ class Role:
             if str(role.name).replace(" ", "").lower() == self.name.replace(" ", "").lower():
                 return role
         return "True"
+
+    def get_role_emoji_from_file(self):
+        file = open(self.role_file, "r")
+        data = str(file.read()).split("\n")
+        file.close()
+        for role in data:
+            r = role.split(",")
+            if r[0] == str(self.role.id):
+                emoji_name = str(r[1]).replace("\n", "")
+                try:
+                    return emoji.emojize(emoji_name)
+                except:
+                    return str(emoji_name)
+        return None
+
