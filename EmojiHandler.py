@@ -39,6 +39,7 @@ class EmojiHandler:
         self.check_usage_status()
 
         if str(message.content).startswith("!timecheck"):
+            await message.channel.trigger_typing()
             emoji_response = await self.canAddEmoji(message)
             if emoji_response == "True":
                 await message.reply("**[Emoji Voting Cooldown]**\n" + message.author.mention +
@@ -128,6 +129,7 @@ class EmojiHandler:
     async def canAddEmoji(self, message):
         # This is the most malformed bullshit I've ever written.  Good luck future Max.
 
+        await message.channel.trigger_typing()
         user_next_allowed = await self.get_user_allowed_submission_time(message)
 
         # Check for server cooldown

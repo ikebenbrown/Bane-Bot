@@ -93,7 +93,6 @@ class Client(discord.Client):
         if message.guild.id == active_guild and not message.author.bot:
             await LanguageHandler.determine_language(message)
             if self.emojiHandler is not None:
-                await message.channel.trigger_typing()
                 await self.emojiHandler.handleEmojiMessage(message)
             if str(message.content).startswith("!role") and message.channel.id == self.admin_channel.id and not message.author.bot:
                 self.roleHandler.handle_new_role(message)
