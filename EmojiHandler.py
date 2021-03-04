@@ -204,7 +204,7 @@ class EmojiHandler:
         if len(user_messages) != 0:
             user_messages = sorted(user_messages, key=itemgetter(1), reverse=True)
             original_time = user_messages[0][0].created_at
-            return original_time + datetime.timedelta(days=20)
+            return original_time + datetime.timedelta(days=5)
 
         print("Found No Value for", message.author.id)
         # No emoji found, return the datetime from 1 minute ago

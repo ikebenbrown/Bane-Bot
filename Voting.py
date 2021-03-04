@@ -43,7 +43,6 @@ async def create_voter(raw_voter, client):
         return VotingListener(emoji, 15, client, False)
 
     except Exception as e:
-        print(e.with_traceback())
         print(getTimeStamp(), "Failed to find message")
         return None
 
@@ -61,7 +60,7 @@ class VotingListener:
             print(getTimeStamp() + "Created Emoji Voter:", emoji.name)
         else:
             print(getTimeStamp() + "Recovered Voter:", emoji.name)
-        self.update_user_submission_record()
+        # self.update_user_submission_record()
 
     # FORMAT OF WRITTEN FILES:
     # original submission message ID, channel ID of <-, voting message id, channel ID of <-
