@@ -4,6 +4,7 @@ from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
 from Role import Role
 from RoleMessage import RoleMessage
+from RoleHandler import RoleHandler
 from HistoryManager import HistoryManager
 import Voting
 import LanguageHandler
@@ -49,8 +50,10 @@ class Client(discord.Client):
         self.announcements_channel = None
         self.guild = None
         self.pinHandler = None
+        self.roleHandler = None
         self.emojiHandler = None
         self.admin_channel = None
+        self.roles_channel = None
 
     async def on_ready(self):
 
@@ -76,21 +79,24 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found Admin Channel")
                 self.admin_channel = a
 
-        self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
+            if a.name == "roles":
+                print(getTimeStamp("SERVER"), "Found Roles Channel")
+                self.roles_channel = a
 
-        # RoleMessage(read=True)
+        self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
+        self.roleHandler = RoleHandler(self.guild, self.admin_channel, self.roles_channel)
 
         # history = HistoryManager(self.guild)
         # await history.analyze_history()
 
     async def on_message(self, message: discord.Message):
-        if message.guild.id == active_guild:
+        if message.guild.id == active_guild and not message.author.bot:
             await LanguageHandler.determine_language(message)
             if self.emojiHandler is not None:
+                await message.channel.trigger_typing()
                 await self.emojiHandler.handleEmojiMessage(message)
             if str(message.content).startswith("!role") and message.channel.id == self.admin_channel.id and not message.author.bot:
-                role = Role(message)
-                await role.create_role()
+                self.roleHandler.handle_new_role(message)
 
     async def on_raw_reaction_add(self, reaction: discord.RawReactionActionEvent):
         if reaction.guild_id == active_guild:

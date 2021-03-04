@@ -39,7 +39,6 @@ class Role:
         # If role is defined from a discord role, collect its emoji from our database
         if message is None:
             self.emoji = self.get_role_emoji_from_file()
-            print(self.emoji)
 
     async def create_role(self):
         valid = await self.interpret_role_message()
@@ -61,7 +60,7 @@ class Role:
 
     def write_role_to_file(self):
         role_data = open(self.role_file, "a")
-        role_data.write(str(self.role.id) + "," + str(self.emoji)+"\n")
+        role_data.write(str(self.role.id) + "," + str(self.emoji) + "\n")
         role_data.close()
 
     async def add_role_to_user(self, member: discord.Member):
@@ -85,7 +84,6 @@ class Role:
             self.name = parts[1]
             try:
                 self.emoji = emoji.demojize(parts[2])
-                print(self.emoji)
             except:
                 await self.message.reply("Invalid emoji!  Please try again")
                 return False
@@ -113,4 +111,3 @@ class Role:
                 except:
                     return str(emoji_name)
         return None
-

@@ -1,6 +1,9 @@
 import asyncio
 import datetime
 import time
+from operator import itemgetter
+
+import discord
 
 from Voting import VotingListener
 from EmojiListener import EmojiListener as Emoji
@@ -27,8 +30,22 @@ class EmojiHandler:
         self.emoji = None
         self.current_user = None
 
+        # Define and create file if it isn't present
+        self.guild_file = "data/" + str(self.guild.id) + "_emojivotes.max"
+        f = open(self.guild_file, "a")
+        f.close()
+
     async def handleEmojiMessage(self, message):
         self.check_usage_status()
+
+        if str(message.content).startswith("!timecheck"):
+            emoji_response = await self.canAddEmoji(message)
+            if emoji_response == "True":
+                await message.reply("**[Emoji Voting Cooldown]**\n" + message.author.mention +
+                                    "'s Cooldown: *None*\n" + "Server Cooldown: *None*")
+            else:
+                await message.reply("**[Emoji Voting Cooldown]**\n" + emoji_response)
+
         if self.in_use() and str(message.author.name) == str(self.current_user.name):
             if self.emoji.status == "done":
                 self.emoji = None
@@ -49,12 +66,13 @@ class EmojiHandler:
         # At this point we are free to engage with a new emoji addition
         elif not message.author.bot and str(message.content).startswith(self.emojiPrefix):
             if not self.in_use():
-                if self.canAddEmoji(message) == "True":
+                emoji_response = await self.canAddEmoji(message)
+                if emoji_response == "True":
                     self.emoji = Emoji(message, self.announcements_channel, self.guild, None)
                     await self.emoji.emoji_cycle()
                     self.current_user = message.author
                 else:
-                    await message.channel.send("**[Emoji Voting Cooldown]**\n" + "You must wait " + self.canAddEmoji(message) + " to add an emoji")
+                    await message.channel.send("**[Emoji Voting Cooldown]**\n" + emoji_response)
             else:
                 await message.channel.send(get_user_name(self.current_user) + " is currently adding an emoji.  "
                                                                               "Please wait to use the bot.")
@@ -107,21 +125,50 @@ class EmojiHandler:
         for voter in voters:
             self.emojiVoters.append(voter)
 
-    def canAddEmoji(self, message):
-        last_sub = self.get_user_last_submission(message)
-        for voter in self.emojiVoters:
-            delta = (message.created_at - voter.emoji.time).seconds
-            if delta < 24 * 60 * 60:
-                if last_sub + datetime.timedelta(days=20) <= datetime.datetime.utcnow():
-                    timeDelta = last_sub + datetime.timedelta(days=20) - datetime.datetime.utcnow()
-                    return self.get_formatted_time(timeDelta)
-                else:
-                    timeDelta = voter.emoji.time + datetime.timedelta(days=20) - datetime.datetime.utcnow()
-                    return self.get_formatted_time(timeDelta)
-            elif last_sub + datetime.timedelta(days=20) <= datetime.datetime.utcnow():
-                timeDelta = last_sub + datetime.timedelta(days=20) - datetime.datetime.utcnow()
-                return self.get_formatted_time(timeDelta)
+    async def canAddEmoji(self, message):
+        # This is the most malformed bullshit I've ever written.  Good luck future Max.
+
+        user_next_allowed = await self.get_user_allowed_submission_time(message)
+
+        # Check for server cooldown
+        if self.server_cooldown(message) is not None:
+
+            # User and Server cooldown
+            if user_next_allowed >= datetime.datetime.utcnow():
+                print(getTimeStamp("EMOJI") + "USER AND SERVER COOLDOWN")
+                timeDelta = user_next_allowed - datetime.datetime.utcnow()
+                return message.author.mention + "'s Cooldown: *" + self.get_formatted_time(timeDelta) + "*\n" \
+                                    "Server Cooldown: *" + self.get_formatted_time(self.server_cooldown(message)) + "*"
+
+            # Server cooldown
+            else:
+                print(getTimeStamp("EMOJI") + "SERVER COOLDOWN")
+                timeDelta = self.server_cooldown(message)
+                return "Server Cooldown: *" + self.get_formatted_time(timeDelta) + "*"
+
+        # User cooldown
+        if user_next_allowed >= datetime.datetime.utcnow():
+            print(getTimeStamp("EMOJI") + "USER COOLDOWN")
+            timeDelta = user_next_allowed - datetime.datetime.utcnow()
+            return message.author.mention + "'s Cooldown: *" + self.get_formatted_time(timeDelta) + "*"
+
         return "True"
+
+    def server_cooldown(self, message):
+        voter_times = []
+        # Put all voter_times into an array
+        for voter in self.emojiVoters:
+            # delta is the amount of time since the last voter passed
+            delta: datetime.timedelta = (message.created_at - voter.emoji.time)
+            if delta.total_seconds() < 24 * 60 * 60:
+                voter_times.append(delta)
+        if len(voter_times) == 0:
+            return None
+        lowest_time = voter_times[0]
+        for voter_time in voter_times:
+            if voter_time.seconds < lowest_time.seconds:
+                lowest_time = voter_time
+        return datetime.timedelta(days=1) - lowest_time
 
     def get_formatted_time(self, timeDelta):
         hms = str(timeDelta).split(".")[0]
@@ -136,12 +183,27 @@ class EmojiHandler:
             else:
                 return seconds + " seconds"
 
-    def get_user_last_submission(self, message):
-        file = str(open("data/uservotes.max", "r").read()).split("\n")
+    async def get_user_allowed_submission_time(self, message):
+        user_messages = []
+        file = str(open(self.guild_file, "r").read()).split("\n")
         for entry in file:
-            entry = entry.split(";")
-            if int(entry[0]) == int(message.author.id):
-                time = float(entry[1])
-                return datetime.datetime.fromtimestamp(time)
+            if entry != "":
+                try:
+                    # 0: message ID, 1: channel ID of message
+                    entry = entry.split(",")
+                    channel: discord.TextChannel = await self.client.fetch_channel(int(entry[1]))
+                    original_message = await channel.fetch_message(int(entry[0]))
+                    if original_message.author.id == int(message.author.id):
+                        user_messages.append([original_message, original_message.created_at.timestamp()])
+
+                except IndexError:
+                    print("Malformed File")
+
+        if len(user_messages) != 0:
+            user_messages = sorted(user_messages, key=itemgetter(1), reverse=True)
+            original_time = user_messages[0][0].created_at
+            return original_time + datetime.timedelta(days=20)
+
         print("Found No Value for", message.author.id)
-        return datetime.datetime.now()
+        # No emoji found, return the datetime from 1 minute ago
+        return datetime.datetime.now() - datetime.timedelta(minutes=1)
