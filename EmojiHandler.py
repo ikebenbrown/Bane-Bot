@@ -194,7 +194,6 @@ class EmojiHandler:
                     # 0: message ID, 1: channel ID of message
                     entry = entry.split(",")
                     channel: discord.TextChannel = await self.client.fetch_channel(int(entry[1]))
-                    print(channel.name, entry)
                     original_message = await channel.fetch_message(int(entry[0]))
                     if original_message.author.id == int(message.author.id):
                         user_messages.append([original_message, original_message.created_at.timestamp()])
@@ -208,7 +207,7 @@ class EmojiHandler:
         if len(user_messages) != 0:
             user_messages = sorted(user_messages, key=itemgetter(1), reverse=True)
             original_time = user_messages[0][0].created_at
-            return original_time + datetime.timedelta(days=5)
+            return original_time + datetime.timedelta(days=20)
 
         print("Found No Value for", message.author.id)
         # No emoji found, return the datetime from 1 minute ago
