@@ -32,7 +32,7 @@ g = open("data/guild.max", "r")
 active_guild = int(g.read())
 
 # Dangerous Men
-active_guild = 375753471812435968
+# active_guild = 375753471812435968
 
 # Test Server
 # noinspection PyRedeclaration
