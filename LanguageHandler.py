@@ -54,11 +54,9 @@ def replenesh_emojis(message: discord.Message, content):
     for match in re.findall("(?<=<)(.*?)(?=>)", content):
         match = "<" + match + ">"
         i+=1
-        print("match", i, match)
         emoji: discord.Emoji
         for emoji in guild.emojis:
             if emoji.id == int(match.replace("<", "").replace(">", "")):
-                print("Replacing", match, "with", str(emoji))
                 content = content.replace(match, str(emoji), 1)
 
     return content
