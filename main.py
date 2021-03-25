@@ -54,6 +54,7 @@ class Client(discord.Client):
         self.emojiHandler = None
         self.admin_channel = None
         self.roles_channel = None
+        self.fuck = None
 
     async def on_ready(self):
 
@@ -83,6 +84,9 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found Roles Channel")
                 self.roles_channel = a
 
+            if a.name == "server-announcements":
+                self.fuck = a
+
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
         self.roleHandler = RoleHandler(self.guild, self.admin_channel, self.roles_channel)
 
@@ -90,6 +94,7 @@ class Client(discord.Client):
         # await history.analyze_history()
 
     async def on_message(self, message: discord.Message):
+
         if message.guild.id == active_guild and not message.author.bot:
             await LanguageHandler.determine_language(message)
             if self.emojiHandler is not None:
