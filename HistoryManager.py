@@ -1,6 +1,7 @@
 import datetime
 import time
 from operator import itemgetter
+from typing import Any, Coroutine
 
 import discord
 
@@ -8,42 +9,44 @@ import discord
 def getTimeStamp():
     return "[HISTORY] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "]"
 
-
 # This file has some comments.  Don't get used to it.
 class HistoryManager:
     guild: discord.Guild
 
-    def __init__(self, guild):
+    def __init__(self, guild, db):
+        self.database = db
         self.guild = guild
         self.reactions = []
         self.message_count = 0
+        self.reaction_dict = dict({})
 
     async def analyze_history(self):
         server_announcements = None
         for channel in self.guild.text_channels:
-
-            # Iterate through all channels.  If we can't read a channel, ignore it.
-            try:
-                await self.analyze_channel_history(channel)
-            except discord.errors.Forbidden:
-                print("[ERROR]", getTimeStamp(), "No access to read " + channel.name)
+            if True:
+                # Iterate through all channels.  If we can't read a channel, ignore it.
+                try:
+                    await self.analyze_channel_history(channel)
+                except discord.errors.Forbidden:
+                    print("[ERROR]", getTimeStamp(), "No access to read " + channel.name)
 
             # If the channel we're reading is server-announcements, save it for later
             if channel.name == "server-announcements":
                 server_announcements = channel
 
-        print("MESSAGE COUNT: ", self.message_count)
+        # print("MESSAGE COUNT: ", self.message_count)
         # self.sort_reactions()
         # self.print_reaction_data()
         # await self.send_reaction_data(server_announcements)
+        self.print_reaction_dictionary()
 
     async def analyze_channel_history(self, channel: discord.TextChannel):
         message: discord.Message
-        one_month_ago = datetime.datetime.now() - datetime.timedelta(days=30)
+        one_month_ago = datetime.datetime.now() - datetime.timedelta(days=90)
         async for message in channel.history(limit=None, after=one_month_ago):
             self.message_count += 1
             for reaction in message.reactions:
-                self.update_reaction(reaction)
+                await self.database.addReaction(reaction)
         print(getTimeStamp(), "Successfully analyzed", channel.name)
 
     def update_reaction(self, react: discord.Reaction):
@@ -63,6 +66,10 @@ class HistoryManager:
     def print_reaction_data(self):
         for reaction in self.reactions:
             print(reaction[0] + "," + str(reaction[1]))
+
+    def print_reaction_dictionary(self):
+        for entry in self.reaction_dict.items():
+            print("['" + str(entry[0].split(":")[0]) + "', '" + str(entry[0].split(":")[1]) + "', " + str(entry[1]) + "],")
 
     async def send_reaction_data(self, channel: discord.TextChannel):
         out = "**[Monthly Emoji Usage]**\n"

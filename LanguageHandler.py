@@ -8,7 +8,6 @@ translator = Translator()
 def getTimeStamp():
     return "[LANGUAGE] [" + time.strftime('%Y-%m-%d %H:%M:%S') + "] "
 
-
 async def determine_language(message):
     try:
 

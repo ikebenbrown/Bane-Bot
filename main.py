@@ -1,22 +1,13 @@
 import time
+
 import discord
 from EmojiHandler import EmojiHandler
 from PinHandler import PinHandler
-from Role import Role
-from RoleMessage import RoleMessage
 from RoleHandler import RoleHandler
 from HistoryManager import HistoryManager
 import Voting
 import LanguageHandler
 
-# DONE separate Emoji stuff into its own class
-# DONE clean up timestamps across codebase
-# DONE wipe mentions from pins
-# DONE record pinned messages in a file and read them on boot
-# DONE record emoji votes in a file and read them on boot
-# DONE implement server-wide cooldown of emoji submission
-# DONE implement system to collect emoji usage from the last month
-# DONE implement 20 day block after submitting an emoji
 # TODO role manager
 # TODO cancel emoji votes after 4 days
 # ---------------- History Manager ---------------------
@@ -45,6 +36,8 @@ def getTimeStamp(stamp):
 
 class Client(discord.Client):
 
+    guild: discord.Guild
+
     def __init__(self):
         super().__init__()
         self.announcements_channel = None
@@ -54,12 +47,15 @@ class Client(discord.Client):
         self.emojiHandler = None
         self.admin_channel = None
         self.roles_channel = None
+        self.ant_zone = None
         self.fuck = None
+        self.database = None
 
     async def on_ready(self):
 
-        await client.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing))
+        # self.database = MySQLHandler()
 
+        await self.change_presence(activity=discord.Activity(name='Eat The Rich', type=discord.ActivityType.playing))
         for n in self.guilds:
             # if n.id ==
             if n.id == active_guild:
@@ -67,6 +63,7 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found GUILD: " + self.guild.name)
 
         for a in self.guild.text_channels:
+
             if a.name == "emoji-voting":
                 self.announcements_channel = a
                 print(getTimeStamp("SERVER"), "Found Announcements Channel: ", str(self.announcements_channel.id))
@@ -84,17 +81,20 @@ class Client(discord.Client):
                 print(getTimeStamp("SERVER"), "Found Roles Channel")
                 self.roles_channel = a
 
+            if a.name == "emotions-and-serious-stuff":
+                print(getTimeStamp("SERVER"), "Found Ant Zone Channel")
+                self.ant_zone = a
+
             if a.name == "server-announcements":
                 self.fuck = a
 
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
         self.roleHandler = RoleHandler(self.guild, self.admin_channel, self.roles_channel)
 
-        # history = HistoryManager(self.guild)
+        # history = HistoryManager(self.guild, self.database)
         # await history.analyze_history()
 
     async def on_message(self, message: discord.Message):
-
         if message.guild.id == active_guild and not message.author.bot:
             await LanguageHandler.determine_language(message)
             if self.emojiHandler is not None:
@@ -108,6 +108,9 @@ class Client(discord.Client):
             if self.emojiHandler is not None:
                 await self.emojiHandler.handleEmojiVoters(reaction)
 
+    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
+        await self.database.addReaction(reaction)
+
     async def send_message(self, channel_name, message):
         channels = await self.guild.fetch_channels()
         for channel in channels:
@@ -120,6 +123,14 @@ class Client(discord.Client):
             if channel.name == channel_name:
                 await channel.connect()
 
+    async def get_members(self):
+        out = "["
+        bruh = await self.guild.fetch_members()
+        member: discord.Member
+        for member in bruh:
+            out += member.display_name + ","
+        return bruh + "]"
 
 client = Client()
 client.run(key)
+print("MADE IT HERE")
