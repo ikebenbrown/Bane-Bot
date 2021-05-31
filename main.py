@@ -19,11 +19,11 @@ import LanguageHandler
 f = open("data/key.txt", "r")
 key = f.read()
 
-g = open("data/guild.max", "r")
-active_guild = int(g.read())
+# g = open("data/guild.max", "r")
+# active_guild = int(g.read())
 
 # Dangerous Men
-# active_guild = 375753471812435968
+active_guild = 375753471812435968
 
 # Test Server
 # noinspection PyRedeclaration
@@ -49,6 +49,7 @@ class Client(discord.Client):
         self.roles_channel = None
         self.ant_zone = None
         self.fuck = None
+        self.misc = None
         self.database = None
 
     async def on_ready(self):
@@ -64,10 +65,14 @@ class Client(discord.Client):
 
         for a in self.guild.text_channels:
 
-            if a.name == "emoji-voting":
+            if a.name == "server-announcements":
                 self.announcements_channel = a
                 print(getTimeStamp("SERVER"), "Found Announcements Channel: ", str(self.announcements_channel.id))
                 self.emojiHandler = EmojiHandler(self.guild, self.announcements_channel, self)
+
+            if a.name == "shit-takes":
+                self.misc = a
+                print(getTimeStamp("SERVER"), "Found Misc Channel: ", str(self.misc.id))
 
             if a.name == "pins":
                 print(getTimeStamp("SERVER"), "Found Pins Channel")
@@ -91,6 +96,10 @@ class Client(discord.Client):
         self.emojiHandler.addVoters(await Voting.create_archived_votes(self))
         self.roleHandler = RoleHandler(self.guild, self.admin_channel, self.roles_channel)
 
+        # Emergency Manual Pin
+        # mes = await self.misc.fetch_message("846947559762427924")
+        # await self.pinHandler.pin(mes)
+
         # history = HistoryManager(self.guild, self.database)
         # await history.analyze_history()
 
@@ -108,8 +117,8 @@ class Client(discord.Client):
             if self.emojiHandler is not None:
                 await self.emojiHandler.handleEmojiVoters(reaction)
 
-    async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
-        await self.database.addReaction(reaction)
+    # async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User):
+        # await self.database.addReaction(reaction)
 
     async def send_message(self, channel_name, message):
         channels = await self.guild.fetch_channels()
