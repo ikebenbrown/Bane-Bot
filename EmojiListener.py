@@ -116,7 +116,7 @@ class EmojiListener:
         await self.message.channel.send(file=discord.File(self.image.name + '.png'))
 
     def create_replacement_queue(self):
-        original = ['COLE', 'mm', 'cringe', 'sadizzy', 'grill', 'FUNNY', 'whisk', 'bootlicker']
+        original = ['COLE', 'Cringe', 'sadizzy', 'grill', 'FUNNY', 'whisk', 'bootlicker']
         queue = []
         for e in original:
             for emoji in self.guild.emojis:
