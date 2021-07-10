@@ -51,7 +51,8 @@ class MySQLHandler():
 
             user: discord.User
             async for user in reaction.users():
-                command = 'INSERT INTO `' + name + '` VALUES ("' + user.name + '","' + message.author.name + '","' + emoji_name + '","' + date + '")'
+                #command = 'INSERT INTO `' + name + '` VALUES ("' + user.name + '","' + message.author.name + '","' + emoji_name + '","' + date + '")'
+                command = f'INSERT INTO `{name}` VALUES ("{user.name}","{message.author.name}","{emoji_name}","{date}")'
                 self.cursor.execute(command)
                 self.mydb.commit()
         except:
